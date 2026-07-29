@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marks Checker</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Courier+Prime&family=Georgia&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --board: #1b2e28;
+        --board-dark: #142019;
+        --chalk: #f2efe4;
+        --chalk-dim: #b9c2b9;
+        --pen-red: #d1495b;
+        --pen-red-dark: #a83345;
+        --gold: #e8b64c;
+        --sage: #7a9a8f;
+        --line: rgba(242, 239, 228, 0.14);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background:
+          radial-gradient(ellipse at 30% 20%, rgba(122, 154, 143, 0.15), transparent 55%),
+          var(--board);
+        font-family: Georgia, "Times New Roman", serif;
+        padding: 24px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* faint chalk dust / texture */
+      body::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(242, 239, 228, 0.03) 1px, transparent 1px);
+        background-size: 3px 3px;
+        pointer-events: none;
+      }
+
+      .sheet {
+        background: var(--board-dark);
+        width: 380px;
+        max-width: 100%;
+        border-radius: 4px;
+        border: 1px solid var(--line);
+        padding: 40px 34px 34px;
+        position: relative;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+      }
+
+      /* three-ring notebook holes */
+      .sheet::before {
+        content: "";
+        position: absolute;
+        left: 14px;
+        top: 30px;
+        bottom: 30px;
+        width: 10px;
+        background-image: radial-gradient(circle, var(--board) 3.5px, transparent 3.6px);
+        background-size: 10px 64px;
+        background-repeat: repeat-y;
+        opacity: 0.9;
+      }
+
+      .eyebrow {
+        font-family: "Courier Prime", "Courier New", monospace;
+        font-size: 11px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--sage);
+        text-align: center;
+        margin-bottom: 6px;
+      }
+
+      h1 {
+        font-family: "Kalam", cursive;
+        font-weight: 700;
+        font-size: 28px;
+        color: var(--chalk);
+        text-align: center;
+        margin-bottom: 4px;
+        letter-spacing: 0.3px;
+      }
+
+      .subtitle {
+        text-align: center;
+        color: var(--chalk-dim);
+        font-size: 13px;
+        font-style: italic;
+        margin-bottom: 28px;
+      }
+
+      label {
+        display: block;
+        font-family: "Kalam", cursive;
+        font-size: 15px;
+        color: var(--chalk-dim);
+        margin-bottom: 8px;
+      }
+
+      .input-row {
+        position: relative;
+        margin-bottom: 6px;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px 46px 12px 14px;
+        border: none;
+        border-bottom: 2px solid var(--line);
+        background: transparent;
+        color: var(--chalk);
+        font-family: "Courier Prime", "Courier New", monospace;
+        font-size: 22px;
+        outline: none;
+        transition: border-color 0.25s ease;
+      }
+
+      input::placeholder {
+        color: rgba(242, 239, 228, 0.28);
+        font-size: 15px;
+      }
+
+      input:focus {
+        border-color: var(--gold);
+      }
+
+      .input-suffix {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--chalk-dim);
+        font-family: "Courier Prime", monospace;
+        font-size: 14px;
+        pointer-events: none;
+      }
+
+      .error {
+        min-height: 18px;
+        color: var(--pen-red);
+        font-size: 12px;
+        font-family: "Courier Prime", monospace;
+        margin-top: 6px;
+        margin-bottom: 8px;
+      }
+
+      button {
+        width: 100%;
+        margin-top: 18px;
+        padding: 13px;
+        border: 1.5px solid var(--gold);
+        border-radius: 3px;
+        background: transparent;
+        color: var(--gold);
+        font-family: "Courier Prime", monospace;
+        font-size: 13px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background 0.2s ease, color 0.2s ease, transform 0.1s ease;
+      }
+
+      button:hover {
+        background: var(--gold);
+        color: var(--board-dark);
+      }
+
+      button:active {
+        transform: scale(0.98);
+      }
+
+      /* result / stamp area */
+      #result {
+        margin-top: 26px;
+        min-height: 118px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        text-align: center;
+      }
+
+      .stamp {
+        width: 92px;
+        height: 92px;
+        border-radius: 50%;
+        border: 3px solid var(--stamp-color, var(--pen-red));
+        color: var(--stamp-color, var(--pen-red));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Kalam", cursive;
+        font-weight: 700;
+        font-size: 34px;
+        transform: rotate(-8deg) scale(0.4);
+        opacity: 0;
+        animation: stamp-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        position: relative;
+      }
+
+      .stamp::after {
+        content: "";
+        position: absolute;
+        inset: 6px;
+        border: 1px solid var(--stamp-color, var(--pen-red));
+        border-radius: 50%;
+        opacity: 0.5;
+      }
+
+      @keyframes stamp-in {
+        0% {
+          opacity: 0;
+          transform: rotate(-8deg) scale(0.4);
+        }
+        60% {
+          opacity: 1;
+          transform: rotate(-8deg) scale(1.08);
+        }
+        100% {
+          opacity: 1;
+          transform: rotate(-8deg) scale(1);
+        }
+      }
+
+      .result-line {
+        font-family: "Courier Prime", monospace;
+        color: var(--chalk);
+        font-size: 14px;
+        opacity: 0;
+        animation: fade-up 0.4s ease 0.25s forwards;
+      }
+
+      .result-remark {
+        font-family: "Kalam", cursive;
+        color: var(--sage);
+        font-size: 14px;
+        opacity: 0;
+        animation: fade-up 0.4s ease 0.35s forwards;
+      }
+
+      @keyframes fade-up {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .stamp,
+        .result-line,
+        .result-remark {
+          animation: none !important;
+          opacity: 1 !important;
+          transform: none !important;
+        }
+      }
+
+      input:focus-visible,
+      button:focus-visible {
+        outline: 2px solid var(--gold);
+        outline-offset: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sheet">
+      <p class="eyebrow">Gradebook · Entry 01</p>
+      <h1>Marks Checker</h1>
+      <p class="subtitle">jot down the score, get the verdict</p>
+
+      <label for="marksVal">Score obtained</label>
+      <div class="input-row">
+        <input type="number" id="marksVal" placeholder="e.g. 78" min="0" max="100" />
+        <span class="input-suffix">/ 100</span>
+      </div>
+      <p class="error" id="errorMsg"></p>
+
+      <button onclick="handleClick()">Grade it</button>
+
+      <div id="result"></div>
+    </div>
+
+    <script>
+      function gradeFor(pct) {
+        if (pct >= 90) return { letter: "A+", color: "#e8b64c", remark: "Top of the class." };
+        if (pct >= 80) return { letter: "A", color: "#e8b64c", remark: "Excellent work." };
+        if (pct >= 70) return { letter: "B", color: "#7a9a8f", remark: "Solid effort." };
+        if (pct >= 60) return { letter: "C", color: "#7a9a8f", remark: "Room to grow." };
+        if (pct >= 50) return { letter: "D", color: "#d1495b", remark: "Just scraped by." };
+        return { letter: "F", color: "#d1495b", remark: "Back to the books." };
+      }
+
+      function handleClick() {
+        const input = document.getElementById("marksVal");
+        const errorMsg = document.getElementById("errorMsg");
+        const result = document.getElementById("result");
+
+        const raw = input.value.trim();
+        const marks = Number(raw);
+
+        result.innerHTML = "";
+        errorMsg.textContent = "";
+
+        if (raw === "" || Number.isNaN(marks)) {
+          errorMsg.textContent = "Enter a number to grade.";
+          return;
+        }
+        if (marks < 0 || marks > 100) {
+          errorMsg.textContent = "Marks should be between 0 and 100.";
+          return;
+        }
+
+        const { letter, color, remark } = gradeFor(marks);
+        const passed = marks >= 50;
+
+        result.innerHTML = `
+          <div class="stamp" style="--stamp-color:${color}">${letter}</div>
+          <p class="result-line">${marks}/100 · ${passed ? "PASS" : "FAIL"}</p>
+          <p class="result-remark">${remark}</p>
+        `;
+      }
+
+      document.getElementById("marksVal").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") handleClick();
+      });
+    </script>
+  </body>
+</html>
